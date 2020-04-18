@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include <X11/XF86keysym.h>
 
 /* appearance */
 static const unsigned int borderpx  = 1;        /* border pixel of windows */
@@ -18,11 +19,11 @@ static const char *colors[][3]      = {
 	/*               fg         bg         border   */
 	[SchemeNorm] = { col_gray3, col_gray1, col_background },
 	[SchemeSel]  = { col_gray4, col_background,  col_foreground  },
-  [SchemeStatus]  = { col_foreground, col_background,  "#000000"  }, // Statusbar right {text,background,not used but cannot be empty}
-  [SchemeTagsSel]  = { col_background, col_foreground,  "#000000"  }, // Tagbar left selected {text,background,not used but cannot be empty}
-  [SchemeTagsNorm]  = { col_foreground, col_background,  "#000000"  }, // Tagbar left unselected {text,background,not used but cannot be empty}
-  [SchemeInfoSel]  = { col_foreground, col_background,  "#000000"  }, // infobar middle  selected {text,background,not used but cannot be empty}
-  [SchemeInfoNorm]  = { col_foreground, col_background,  "#000000"  }, // infobar middle  unselected {text,background,not used but cannot be empty}
+	[SchemeStatus]  = { col_foreground, col_background,  "#000000"  },
+	[SchemeTagsSel]  = { col_background, col_foreground,  "#000000"  },
+	[SchemeTagsNorm]  = { col_foreground, col_background,  "#000000"  },
+	[SchemeInfoSel]  = { col_foreground, col_background,  "#000000"  },
+	[SchemeInfoNorm]  = { col_foreground, col_background,  "#000000"  },
 };
 
 /* tagging */
@@ -63,47 +64,63 @@ static const Layout layouts[] = {
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
-static const char *dmenucmd[] = { "rofi", "-show", "combi", "-p", "Application" };
-static const char *termcmd[]  = { "alacritty", NULL };
+static const char *dmenucmd[]     = { "rofi", "-show", "combi", "-p", "Application" };
+static const char *termcmd[]      = { "alacritty", NULL };
+static const char *mailcmd[]      = { "alacritty", "--class", "float", "-e", "neomutt", NULL };
+static const char *calcmd[]       = { "alacritty", "--class", "float", "-e", "calcurse", NULL };
+static const char *mixercmd[]     = { "alacritty", "--class", "float", "-e", "pulsemixer", NULL };
+static const char *musiccmd[]     = { "alacritty", "--class", "float", "-e", "ncmpcpp", NULL };
+static const char *browsercmd[]   = { "qutebrowser", NULL };
+static const char *passcmd[]      = { "qp", NULL };
+static const char *volup[]        = { "volume", "up", NULL };
+static const char *voldown[]      = { "volume", "down" , NULL };
+static const char *volmute[]      = { "volume", "mute" , NULL };
+static const char *brightup[]     = { "brightness", "up" , NULL };
+static const char *brightdown[]   = { "brightness", "down" , NULL };
 
 static Key keys[] = {
-	/* modifier                     key        function        argument */
-  { MODKEY,                       XK_o,       spawn,          SHCMD("alacritty --class float -e neomutt") },
-  { MODKEY,                       XK_c,       spawn,          SHCMD("alacritty --class float -e calcurse") },
-  { MODKEY|ShiftMask,             XK_p,       spawn,          SHCMD("qp") },
-  { MODKEY,                       XK_p,       spawn,          SHCMD("alacritty --class float -e pulsemixer") },
-  { MODKEY,                       XK_m,       spawn,          SHCMD("alacritty --class float -e ncmpcpp") },
-	{ MODKEY,                       XK_b,      spawn,          SHCMD("qutebrowser") },
-	{ MODKEY,                       XK_space,  spawn,          {.v = dmenucmd } },
-	{ MODKEY,                       XK_comma,  spawn,          {.v = termcmd } },
-	{ MODKEY|ShiftMask,             XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
-	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
-	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
-	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
-	{ MODKEY|ControlMask,           XK_h,      setmfact,       {.f = -0.05} },
-	{ MODKEY|ControlMask,           XK_l,      setmfact,       {.f = +0.05} },
-	{ MODKEY,                       XK_Return, zoom,           {0} },
-	{ MODKEY,                       XK_KP_Enter,  zoom,        {0} },
-	{ MODKEY,                       XK_Tab,    view,           {0} },
-	{ MODKEY,                       XK_q,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_s,      togglefloating, {0} },
-	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
-	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
-	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
-	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
-	TAGKEYS(                        XK_1,                      0)
-	TAGKEYS(                        XK_2,                      1)
-	TAGKEYS(                        XK_3,                      2)
-	TAGKEYS(                        XK_4,                      3)
-	TAGKEYS(                        XK_5,                      4)
-	TAGKEYS(                        XK_6,                      5)
-	TAGKEYS(                        XK_7,                      6)
-	TAGKEYS(                        XK_8,                      7)
-	TAGKEYS(                        XK_9,                      8)
-	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
+	/* modifier           key                       function        argument */
+	{ 0,                  XF86XK_MonBrightnessUp,   spawn,          {.v = brightup}},
+	{ 0,                  XF86XK_MonBrightnessDown, spawn,          {.v = brightdown}},
+	{ 0,                  XF86XK_AudioRaiseVolume,  spawn,          {.v = volup}},
+	{ 0,                  XF86XK_AudioLowerVolume,  spawn,          {.v = voldown}},
+	{ 0,                  XF86XK_AudioMute,         spawn,          {.v = volmute}},
+	{ MODKEY,             XK_o,                     spawn,          {.v = mailcmd} },
+	{ MODKEY,             XK_c,                     spawn,          {.v = calcmd} },
+	{ MODKEY|ShiftMask,   XK_p,                     spawn,          {.v = passcmd } },
+	{ MODKEY,             XK_p,                     spawn,          {.v = mixercmd} },
+	{ MODKEY,             XK_m,                     spawn,          {.v = musiccmd} },
+	{ MODKEY,             XK_b,                     spawn,          {.v = browsercmd} },
+	{ MODKEY,             XK_space,                 spawn,          {.v = dmenucmd} },
+	{ MODKEY,             XK_comma,                 spawn,          {.v = termcmd} },
+	{ MODKEY|ShiftMask,   XK_b,                     togglebar,      {0} },
+	{ MODKEY,             XK_j,                     focusstack,     {.i = +1 } },
+	{ MODKEY,             XK_k,                     focusstack,     {.i = -1 } },
+	{ MODKEY,             XK_i,                     incnmaster,     {.i = +1 } },
+	{ MODKEY,             XK_d,                     incnmaster,     {.i = -1 } },
+	{ MODKEY|ControlMask, XK_h,                     setmfact,       {.f = -0.05} },
+	{ MODKEY|ControlMask, XK_l,                     setmfact,       {.f = +0.05} },
+	{ MODKEY,             XK_Return,                zoom,           {0} },
+	{ MODKEY,             XK_KP_Enter,              zoom,           {0} },
+	{ MODKEY,             XK_Tab,                   view,           {0} },
+	{ MODKEY,             XK_q,                     killclient,     {0} },
+	{ MODKEY,             XK_t,                     setlayout,      {.v = &layouts[0]} },
+	{ MODKEY,             XK_f,                     setlayout,      {.v = &layouts[2]} },
+	{ MODKEY,             XK_s,                     togglefloating, {0} },
+	{ MODKEY,             XK_0,                     view,           {.ui = ~0 } },
+	{ MODKEY|ShiftMask,   XK_0,                     tag,            {.ui = ~0 } },
+	{ MODKEY,             XK_period,                focusmon,       {.i = +1 } },
+	{ MODKEY|ShiftMask,   XK_period,                tagmon,         {.i = +1 } },
+	TAGKEYS(              XK_1,                                     0)
+	TAGKEYS(              XK_2,                                     1)
+	TAGKEYS(              XK_3,                                     2)
+	TAGKEYS(              XK_4,                                     3)
+	TAGKEYS(              XK_5,                                     4)
+	TAGKEYS(              XK_6,                                     5)
+	TAGKEYS(              XK_7,                                     6)
+	TAGKEYS(              XK_8,                                     7)
+	TAGKEYS(              XK_9,                                     8)
+	{ MODKEY|ShiftMask,   XK_q,                     quit,           {0} },
 };
 
 /* button definitions */
