@@ -25,6 +25,9 @@ config.h:
 dwm: ${OBJ}
 	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
+patch:
+	./patch.sh
+
 clean:
 	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz
 
