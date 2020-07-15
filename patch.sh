@@ -1,6 +1,8 @@
 #!/bin/sh
 
-for x in $(ls patches/)
+patch_list="vacanttags alwayscenter colorbar smartborder"
+
+for x in $patch_list
 do
-  patch < patches/$x
+  patch -p1 < patches/$x.patch
 done
